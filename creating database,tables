@@ -1,0 +1,12 @@
+create database studentresults;
+use studentresults;
+show tables;
+drop table semesters;
+drop table students;
+drop table courses;
+drop table grades;
+create  table courses(c_id int primary key not null,name char(20),credits int);
+create table students(std_id int primary key not null,name char(20),DOB date,gender char(10),email char(45));
+create  table semesters(sem_id int primary key not null,name char(10),year int);
+create  table grades(g_id int primary key not null,std_id int,c_id int,sem_id int,marks int,grades char(5),points int);
+create table exam(e_id int,c_id int,std_id int);
