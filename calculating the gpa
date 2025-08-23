@@ -1,0 +1,32 @@
+
+CREATE VIEW `studentresults`.`view2` AS
+    SELECT 
+        `studentresults`.`grades`.`g_id` AS `g_id`,
+        `studentresults`.`grades`.`std_id` AS `std_id`,
+        `studentresults`.`grades`.`points` AS `points`,
+        `studentresults`.`courses`.`credits` AS `credits`,
+        (`studentresults`.`grades`.`points` * `studentresults`.`courses`.`credits`) AS `pts_crt`
+    FROM
+        (`studentresults`.`grades`
+        JOIN `studentresults`.`courses` ON ((`studentresults`.`grades`.`c_id` = `studentresults`.`courses`.`c_id`)))
+select * from view2;
+
+//NOW USE THIS DATA FROM VIEW2 TO CALCULATE GPA FOR THE STUDENTS WISE //
+
+CREATE VIEW `studentresults`.`results` AS
+    SELECT 
+        `studentresults`.`v2`.`std_id` AS `std_id`,
+        SUM(`studentresults`.`v2`.`credits`) AS `total_credits`,
+        SUM(`studentresults`.`v2`.`pts_crt`) AS `total_points`,
+        (SUM(`studentresults`.`v2`.`pts_crt`) / SUM(`studentresults`.`v2`.`credits`)) AS `gpa`,
+        (CASE
+            WHEN ((SUM(`studentresults`.`v2`.`pts_crt`) / SUM(`studentresults`.`v2`.`credits`)) > 9) THEN 'A+'
+            WHEN ((SUM(`studentresults`.`v2`.`pts_crt`) / SUM(`studentresults`.`v2`.`credits`)) > 8) THEN 'A'
+            WHEN ((SUM(`studentresults`.`v2`.`pts_crt`) / SUM(`studentresults`.`v2`.`credits`)) > 7) THEN 'B'
+            WHEN ((SUM(`studentresults`.`v2`.`pts_crt`) / SUM(`studentresults`.`v2`.`credits`)) > 6) THEN 'C'
+            ELSE 'F'
+        END) AS `grade`
+    FROM
+        `studentresults`.`view2` `v2`
+    GROUP BY `studentresults`.`v2`.`std_id`
+select* from results;
