@@ -1,0 +1,36 @@
+--- before insert..//---
+CREATE DEFINER=`root`@`localhost` TRIGGER `results_log_BEFORE_INSERT` BEFORE INSERT ON `results_log` FOR EACH ROW BEGIN
+ DECLARE total_credits INT;
+ DECLARE total_points DECIMAL(10,2);
+DECLARE gpa DECIMAL(5,2);
+ DECLARE grade VARCHAR(2);
+ SELECT SUM(c.credits), SUM(g.points * c.credits) INTO total_credits, total_points FROM grades g JOIN courses c ON g.c_id = c.c_id WHERE g.std_id = NEW.std_id; SET gpa = total_points / total_credits;
+ SET grade= CASE WHEN gpa > 9 THEN 'A+' WHEN gpa > 8 THEN 'A'
+ WHEN gpa > 7 THEN 'B' 
+ WHEN gpa > 6 THEN 'C' 
+ ELSE 'F'
+END;
+   INSERT INTO results_log(std_id, gpa, grade, action)
+    VALUES (NEW.std_id, gpa, grade, 'INSERT');
+END
+
+---after insert..//---
+CREATE DEFINER=`root`@`localhost` TRIGGER `results_log_AFTER_INSERT` AFTER INSERT ON `results_log` FOR EACH ROW BEGIN
+    DECLARE total_credits INT DEFAULT 0;
+    DECLARE total_points DECIMAL(10,2) DEFAULT 0;
+    DECLARE gpa DECIMAL(5,2) DEFAULT 0;
+    DECLARE grade VARCHAR(2);
+    SELECT SUM(c.credits), SUM(g.points * c.credits)
+    INTO total_credits, total_points
+    FROM grades g
+    JOIN courses c ON g.c_id = c.c_id
+    WHERE g.std_id = NEW.std_id;
+    SET gpa = total_points / total_credits;
+INSERT INTO results_log (std_id, gpa, grader, total_credits, total_points)
+    VALUES (NEW.std_id, gpa, grader, total_credits, total_points)
+    ON DUPLICATE KEY UPDATE
+    gpa = VALUES(gpa),
+        grade = VALUES(grade),
+        total_credits = VALUES(total_credits),
+        total_points = VALUES(total_points);
+END
