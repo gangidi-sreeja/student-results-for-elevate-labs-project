@@ -1,0 +1,16 @@
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `studentresults`.`semwise` AS
+  select row_number() OVER (PARTITION BY `studentresults`.`v4`.`sem_id`
+ORDER BY (sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) desc )  AS `rank`,
+`studentresults`.`v4`.`std_id` AS `std_id`,
+  `studentresults`.`v4`.`sem_id` AS `sem_id`,
+  sum(`studentresults`.`v4`.`credits`) AS `total_credits`,
+  sum(`studentresults`.`v4`.`pts_crt`) AS `total_points`,(sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) AS `gpa`,
+  (case when ((sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) > 9) then 'A+'
+  when ((sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) > 8) then 'A' 
+  when ((sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) > 7) then 'B' 
+  when ((sum(`studentresults`.`v4`.`pts_crt`) / sum(`studentresults`.`v4`.`credits`)) > 6) then 'C'
+  else 'F' end) AS `grade`
+from `studentresults`.`view4` `v4` 
+group by `studentresults`.`v4`.`std_id`,`studentresults`.`v4`.`sem_id`
+  order by `studentresults`.`v4`.`sem_id`,`gpa` desc
+
